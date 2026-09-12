@@ -1,121 +1,117 @@
-# ElementsPlus Admin - iframe 优先后台管理模板
+# ElementsPlus Admin
 
-> 基于 **Vue 3 + TypeScript + Element Plus + Vite + Tailwind CSS** 构建的微前端与多应用集成后台管理模板。
-> 针对传统后台嵌入 iframe 时“Tab 切换重新加载、表单状态丢失、跨域通信困难”等痛点进行了系统化设计与深度优化。
+ElementsPlus Admin 是一个基于 Vue 3、TypeScript 与 Element Plus 的后台管理模板，专注于多系统集成与微前端嵌入场景，采用 iframe 优先（iframe-first）架构设计与 Zinc 低饱和度界面风格。
 
 ---
 
-## 核心亮点
+## 架构设计
 
-### 1. 原生级 iframe 常驻保活（Keep-Alive Multi-Iframe）
-- **独立 DOM 保活池**：普通 Vue 页面与 iframe 页面解耦，打开的 iframe 驻留在独立的全局容器池中，切换标签页仅使用 `v-show` 切换视口，**输入框内容、步骤条进度、滚动高度完全保持，零重复请求与重载**。
-- **生命周期受控**：只有在用户明确关闭 Tab 标签时，对应 iframe 才从 DOM 树中安全销毁，兼顾体验与内存回收。
-- **优雅加载体验**：每个 iframe 实例自带 Zinc 风格微光 Loading 遮罩与骨架动画，并提供超时检测与独立外链容灾打开方案。
+### 1. 多 iframe 独立保活容器
+在传统基于单页面路由架构的后台管理系统中，将 iframe 页面置于 `router-view` 内会导致路由切换时 DOM 节点销毁并触发重新加载，从而引发页面重载、用户输入表单丢失与网络开销等问题。
 
-### 2. 双向跨域通信 SDK（IframeBridge）
-- **零依赖 Client SDK**：子系统既可通过原生脚本 `<script src="/bridge-client.js">` 接入，也可在工程化项目中 `import { bridgeClient } from '...'`。
-- **丰富的交互能力**：
-  - 子系统调用宿主 Element Plus 全局消息通知（`ElMessage` / `ElNotification`），避免被 iframe 边界裁剪；
-  - 动态修改父级当前 Tab 标签标题；
-  - 命令宿主跳转内部路由或打开新标签；
-  - 子页面主动请求关闭当前 Tab；
-  - 宿主主题联动：明暗模式（Dark Mode）与 Zinc 风格实时向所有 iframe 同步；
-- **安全沙箱防范**：具备 Origin 来源合法性校验，抵御跨站请求伪装。
+本系统采用解耦保活方案：
+- **常驻 DOM 实例池**：所有被激活的 iframe 节点统一由独立容器托管，多标签切换时仅通过样式控制显隐（`v-show`），DOM 节点常驻内存，确保子应用内部表单输入、滚动高度及运行状态不丢失。
+- **生命周期可控**：仅在标签页被主动关闭时，对应 iframe 实例方从 DOM 树中安全移除，回收内存。
+- **加载状态管理**：各 iframe 实例配备加载遮罩与超时检测机制，避免外部站点因策略限制引发的永久挂起。
 
-### 3. Shadcn-like 沉浸式 Zinc 极简设计
-- 严格遵循低饱和度设计哲学，主色调采用 Zinc 冷灰与碳黑搭配，杜绝高饱和艳丽渐变与冗余 Emoji。
-- 全站采用 Lucide 风格的非线性单色线性矢量图标，视觉清晰利落。
-- 仿现代编辑器风格的多标签栏：支持横向滚轮滚动、右键上下文菜单（刷新单个应用、独立全屏、外部打开、批量关闭）。
+### 2. 双向跨域通信协议 (IframeBridge)
+系统内置宿主与子系统之间的标准化通信层，提供 TypeScript SDK 与原生 JavaScript 脚本：
+- **消息通信**：支持子系统调用宿主全局消息组件（`ElMessage`、`ElNotification`），避免提示框被 iframe 窗口裁剪。
+- **页面与路由协同**：支持子系统发起修改父级标签页标题、请求路由跳转、打开新标签页及关闭自身标签页。
+- **主题联动**：宿主切换明暗模式时，自动向所有活跃 iframe 广播主题状态变更事件。
+- **上下文获取**：子系统可通过 `GET_CONTEXT` 主动请求宿主当前认证令牌与环境参数。
+- **安全校验**：提供 Origin 域名白名单过滤机制，防范跨站非法消息注入。
 
 ---
 
 ## 项目结构
 
 ```text
-├── public/                 # 静态资源与子系统通信 SDK
-│   ├── bridge-client.js    # 纯原生 JS 通信客户端
-│   ├── demo-subapp.html    # 通信演练演示子系统
-│   └── demo-form.html      # 长表单保活测试演示子系统
+├── public/                     # 静态资源与子系统示例
+│   ├── bridge-client.js        # 客户端原生通信脚本
+│   ├── demo-subapp.html        # 双向通信交互演示页
+│   ├── demo-form.html          # 长表单保活测试页
+│   └── vue-docs-preview.html   # 可嵌入特性速查页
 ├── src/
-│   ├── assets/styles/      # Tailwind 与 Element Plus Zinc 主题覆写
-│   ├── core/               # 通信核心层
-│   │   ├── bridge-host.ts  # 宿主消息调度中心
-│   │   └── bridge-client.ts# 客户端 SDK
-│   ├── layout/             # 框架布局骨架
-│   │   ├── components/
-│   │   │   ├── IframeContainer/ # 关键：iframe 多实例保活容器
-│   │   │   ├── Navbar/          # 顶部导航、面包屑、快捷搜索
-│   │   │   ├── Sidebar/         # 极简折叠侧边栏
-│   │   │   └── Tabs/            # 仿编辑器多标签栏与右键菜单
-│   │   └── index.vue
-│   ├── router/             # 路由表（内置页面与 iframe 页面混合管理）
-│   ├── store/              # Pinia 状态树（tabs, app, user）
-│   ├── views/              # 各功能页面
-│   │   ├── dashboard/      # 控制台概览与 iframe 内存池监控
-│   │   ├── configurator/   # iframe 在线配置中心与测试台
-│   │   ├── docs/           # IframeBridge 开发者接入文档
-│   │   └── system/         # 系统集成用户管理
+│   ├── assets/styles/          # 全局样式与 Zinc 变量定制
+│   ├── core/                   # 通信核心层 (BridgeHost / BridgeClient)
+│   ├── layout/                 # 布局框架 (Sidebar, Navbar, Tabs, IframeContainer)
+│   ├── router/                 # 路由配置与全局认证守卫
+│   ├── store/                  # Pinia 状态树
+│   ├── views/                  # 内置功能视图
 │   ├── App.vue
 │   └── main.ts
-├── AGENTS.md               # 项目级上下文与架构决策文档
-├── tailwind.config.cjs
+├── AGENTS.md                   # 架构与开发约束文档
+├── LICENSE                     # MIT 开源许可证
+├── package.json
 └── vite.config.ts
 ```
 
 ---
 
-## 快速上手
+## 快速开始
 
-### 环境要求
+### 依赖环境
 - Node.js >= 18.0.0
 - pnpm >= 8.0.0
 
-### 安装依赖
+### 安装与运行
 ```bash
+# 安装依赖
 pnpm install
-```
 
-### 启动本地开发服务
-```bash
+# 启动本地开发服务
 pnpm dev
-```
-启动后访问 `http://localhost:3000` 即可体验。
 
-### 代码检查与构建
-```bash
-# 类型检查
+# 代码质量与规范检查
 pnpm run typecheck
-
-# 语法检查与修复
 pnpm run lint
 
-# 生产环境打包
+# 生产环境构建
 pnpm run build
 ```
 
 ---
 
-## 如何添加一个 iframe 页面？
+## 子应用接入指南
 
-仅需在 `src/router/index.ts` 中配置一个路由条目：
+### 1. 静态页面接入
+在嵌入的子页面中引入 SDK 脚本：
+```html
+<script src="/bridge-client.js"></script>
+<script>
+  // 获取宿主上下文
+  bridgeClient.getContext(function(context) {
+    console.log('Token:', context.token);
+  });
 
-```typescript
-{
-  path: 'iframe/your-app',
-  name: 'YourApp',
-  component: () => import('@/views/empty/index.vue'),
-  meta: {
-    title: '你的应用名称',
-    icon: 'AppWindow',
-    isIframe: true,
-    iframeUrl: 'https://your-domain.com/path'
-  }
-}
+  // 调用宿主全局通知
+  bridgeClient.showMessage('操作已完成', 'success');
+
+  // 修改当前标签页标题
+  bridgeClient.setTabTitle('新标题');
+</script>
 ```
 
-后台会自动识别 `isIframe: true`，将其注册入多标签栏与保活池中，无需额外编码。
+### 2. 工程化项目接入
+```typescript
+import { bridgeClient } from '@/core/bridge-client'
+
+// 监听宿主主题切换
+bridgeClient.onThemeChange(({ isDark }) => {
+  if (isDark) {
+    document.documentElement.classList.add('dark')
+  } else {
+    document.documentElement.classList.remove('dark')
+  }
+})
+
+// 命令宿主后台跳转路由
+bridgeClient.navigate('/system/users')
+```
 
 ---
 
-## 开源协议
-MIT License
+## 开源许可证
+
+本项目基于 [MIT 许可证](file:///data/data/com.termux/files/home/Project/ElementsPlus-Admin-Template/LICENSE) 开源。
