@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>复杂业务长表单 - 状态保活演练</title>
+  <script src="/bridge-client.js"></script>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --fg: #18181b;
+      --card-bg: #fafafa;
+      --border: #e4e4e7;
+      --muted: #71717a;
+      --btn-bg: #18181b;
+      --btn-fg: #ffffff;
+      --input-bg: #ffffff;
+    }
+    html.dark {
+      --bg: #09090b;
+      --fg: #f4f4f5;
+      --card-bg: #18181b;
+      --border: #27272a;
+      --muted: #a1a1aa;
+      --btn-bg: #f4f4f5;
+      --btn-fg: #18181b;
+      --input-bg: #09090b;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background-color: var(--bg);
+      color: var(--fg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      padding: 24px;
+      transition: background-color 0.2s, color 0.2s;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .header {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 16px;
+      margin-bottom: 24px;
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .form-group {
+      margin-bottom: 16px;
+    }
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: 6px;
+      color: var(--fg);
+    }
+    input, select, textarea {
+      width: 100%;
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      color: var(--fg);
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      outline: none;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--fg);
+    }
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    button {
+      background: var(--btn-bg);
+      color: var(--btn-fg);
+      border: none;
+      padding: 8px 18px;
+      border-radius: 6px;
+      font-size: 13px;
+      cursor: pointer;
+      font-weight: 500;
+    }
+    .tip-box {
+      font-size: 12px;
+      color: var(--muted);
+      background: rgba(113, 113, 122, 0.08);
+      padding: 10px 14px;
+      border-radius: 6px;
+      margin-bottom: 18px;
+      border-left: 3px solid #71717a;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h2>企业项目立项审批单（长表单保活测试）</h2>
+      <p style="font-size: 13px; color: var(--muted); margin-top: 4px;">验证在填写大量数据时，多标签频繁切换导致 iframe 重载的问题已彻底解决</p>
+    </div>
+
+    <div class="tip-box">
+      提示：请随意在此表单中填写几个字段、调整下拉选框或滚动页面，然后切换至其他菜单标签，再返回本页。你会发现已输入数据、选中项以及页面滚动高度均完好保留。
+    </div>
+
+    <form id="auditForm" onsubmit="event.preventDefault(); handleSubmit();">
+      <div class="card">
+        <h3 style="font-size: 14px; margin-bottom: 14px;">一、基本信息申报</h3>
+        <div class="row">
+          <div class="form-group">
+            <label>项目编号</label>
+            <input type="text" id="projectCode" value="PRJ-2026-8809" />
+          </div>
+          <div class="form-group">
+            <label>申报部门</label>
+            <select id="department">
+              <option value="cloud">云原生工程事业部</option>
+              <option value="data">智能大数据实验室</option>
+              <option value="security">安全运维中心</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>项目名称</label>
+          <input type="text" id="projectName" placeholder="请输入立项项目完整名称..." />
+        </div>
+        <div class="form-group">
+          <label>项目预算估算 (CNY 万元)</label>
+          <input type="number" id="budget" placeholder="例如：280" />
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 style="font-size: 14px; margin-bottom: 14px;">二、项目技术方案及风险论证</h3>
+        <div class="form-group">
+          <label>技术可行性与架构描述</label>
+          <textarea id="techArch" rows="4" placeholder="在此输入技术选型考量、多系统隔离策略..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>关键交付里程碑</label>
+          <textarea id="milestones" rows="3" placeholder="阶段一、阶段二等目标计划..."></textarea>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 10px; justify-content: flex-end;">
+        <button type="submit">提交审批申请</button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    bridgeClient.onThemeChange((data) => {
+      if (data.isDark) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    });
+
+    function handleSubmit() {
+      const name = document.getElementById('projectName').value.trim() || '未命名项目';
+      bridgeClient.showMessage(`已成功提交审批：${name}`, 'success');
+    }
+  </script>
+</body>
+</html>
