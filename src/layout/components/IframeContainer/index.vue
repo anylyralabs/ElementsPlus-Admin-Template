@@ -109,7 +109,26 @@ const sanitizeId = (id: string) => {
   return id.replace(/[^a-zA-Z0-9_-]/g, '_')
 }
 
+const timeoutMap = new Map<string, number>()
+
+const startTimeoutChecker = (id: string) => {
+  if (timeoutMap.has(id)) {
+    window.clearTimeout(timeoutMap.get(id))
+  }
+  const timer = window.setTimeout(() => {
+    const item = tabsStore.iframeList.find(i => i.id === id)
+    if (item && item.loading) {
+      tabsStore.setIframeError(id, '子系统加载时间过长，可能由于网络缓慢或目标站点限制了跨域嵌入 (X-Frame-Options)。')
+    }
+  }, 10000)
+  timeoutMap.set(id, timer)
+}
+
 const handleIframeLoaded = (id: string) => {
+  if (timeoutMap.has(id)) {
+    window.clearTimeout(timeoutMap.get(id))
+    timeoutMap.delete(id)
+  }
   tabsStore.setIframeLoaded(id)
 }
 
@@ -119,6 +138,7 @@ const retryLoad = (id: string) => {
     item.loading = true
     item.hasError = false
     item.refreshKey = Date.now()
+    startTimeoutChecker(id)
   }
 }
 
@@ -133,12 +153,27 @@ const handleKeydown = (e: KeyboardEvent) => {
   }
 }
 
+// 当宿主窗口失焦（用户点击了 iframe 内部）时，派发全局 click 事件收起可能悬浮的菜单
+const handleWindowBlur = () => {
+  window.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }))
+}
+
 onMounted(() => {
   window.addEventListener('keydown', handleKeydown)
+  window.addEventListener('blur', handleWindowBlur)
+  // 为初始的 iframe 启动超时监控
+  iframeList.value.forEach(item => {
+    if (item.loading) {
+      startTimeoutChecker(item.id)
+    }
+  })
 })
 
 onUnmounted(() => {
   window.removeEventListener('keydown', handleKeydown)
+  window.removeEventListener('blur', handleWindowBlur)
+  timeoutMap.forEach(timer => window.clearTimeout(timer))
+  timeoutMap.clear()
 })
 </script>
 

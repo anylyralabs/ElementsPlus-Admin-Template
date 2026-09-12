@@ -17,7 +17,20 @@
         }
       }
     });
+
+    // 子页面点击同步触发宿主 click
+    document.addEventListener('click', function () {
+      self.send('SUB_APP_CLICK');
+    });
   }
+
+  IframeBridgeClient.prototype.getContext = function (callback) {
+    var unbind = this.on('RESPONSE_CONTEXT', function (payload) {
+      unbind();
+      if (callback) callback(payload);
+    });
+    this.send('GET_CONTEXT');
+  };
 
   IframeBridgeClient.prototype.send = function (type, payload) {
     if (window.parent && window.parent !== window) {

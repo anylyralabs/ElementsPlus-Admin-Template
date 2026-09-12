@@ -188,6 +188,18 @@
         <button class="outline" onclick="closeSelfTab()">关闭当前标签</button>
       </div>
     </div>
+
+    <!-- 宿主凭证与环境同步 -->
+    <div class="card">
+      <div class="card-title">4. 身份令牌与环境上下文获取</div>
+      <div class="card-desc">子页面主动发起 GET_CONTEXT，安全接收宿主注入的授权凭证与系统参数。</div>
+      <div style="font-size: 12px; font-family: monospace; background: var(--input-bg); border: 1px solid var(--border); padding: 10px; border-radius: 6px; margin-bottom: 12px;" id="authContextDisplay">
+        等待获取认证上下文...
+      </div>
+      <div class="btn-group">
+        <button onclick="fetchContext()">请求宿主 Token 与上下文</button>
+      </div>
+    </div>
   </div>
 
   <div class="card">
@@ -250,6 +262,14 @@
     function closeSelfTab() {
       bridgeClient.closeCurrentTab();
       log('请求父级关闭当前标签');
+    }
+
+    function fetchContext() {
+      bridgeClient.getContext((ctx) => {
+        const text = `Token: ${ctx.token.substring(0, 24)}...\n主题: ${ctx.isDark ? 'Dark' : 'Light'}\n时间戳: ${ctx.systemTime}`;
+        document.getElementById('authContextDisplay').innerText = text;
+        log('成功自宿主获取鉴权凭据与环境上下文');
+      });
     }
 
     // 监听宿主主题切换

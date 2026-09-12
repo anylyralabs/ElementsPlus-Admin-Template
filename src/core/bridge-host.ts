@@ -138,6 +138,25 @@ export class BridgeHost {
         }
         break
 
+      case 'GET_CONTEXT': {
+        const token = localStorage.getItem('access_token') || 'demo_zinc_token_2026'
+        const isDark = document.documentElement.classList.contains('dark')
+        this.reply(event.source as Window, {
+          type: 'RESPONSE_CONTEXT',
+          payload: {
+            token,
+            isDark,
+            systemTime: Date.now()
+          }
+        })
+        break
+      }
+
+      case 'SUB_APP_CLICK':
+        // 子应用点击事件同步到宿主，触发宿主下拉菜单与右键菜单关闭
+        window.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }))
+        break
+
       default:
         // 可扩充自定义事件
         break

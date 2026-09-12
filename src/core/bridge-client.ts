@@ -35,6 +35,23 @@ export class IframeBridgeClient {
         handlers.forEach(fn => fn(data.payload))
       }
     })
+
+    if (typeof document !== 'undefined') {
+      document.addEventListener('click', () => {
+        this.send('SUB_APP_CLICK')
+      })
+    }
+  }
+
+  /**
+   * 获取宿主当前 Token 及上下文环境
+   */
+  public getContext(callback: (context: { token: string; isDark: boolean; systemTime: number }) => void) {
+    const unbind = this.on('RESPONSE_CONTEXT', (payload) => {
+      unbind()
+      callback(payload)
+    })
+    this.send('GET_CONTEXT')
   }
 
   /**

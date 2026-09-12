@@ -13,28 +13,34 @@
 
       <!-- 主视图区 (普通路由与 iframe 容器无缝切换) -->
       <main class="flex-1 relative overflow-hidden bg-zinc-50 dark:bg-black select-text">
-        <!-- 普通 Vue 路由页面视图 -->
-        <div
-          v-show="!isCurrentIframe"
-          class="w-full h-full overflow-y-auto"
+        <el-watermark
+          :content="watermarkContent"
+          :font="{ color: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)', fontSize: 13 }"
+          class="w-full h-full"
         >
-          <router-view v-slot="{ Component, route: currentRoute }">
-            <transition
-              name="fade-transform"
-              mode="out-in"
-            >
-              <keep-alive>
-                <component
-                  :is="Component"
-                  :key="currentRoute.path"
-                />
-              </keep-alive>
-            </transition>
-          </router-view>
-        </div>
+          <!-- 普通 Vue 路由页面视图 -->
+          <div
+            v-show="!isCurrentIframe"
+            class="w-full h-full overflow-y-auto"
+          >
+            <router-view v-slot="{ Component, route: currentRoute }">
+              <transition
+                name="fade-transform"
+                mode="out-in"
+              >
+                <keep-alive>
+                  <component
+                    :is="Component"
+                    :key="currentRoute.path"
+                  />
+                </keep-alive>
+              </transition>
+            </router-view>
+          </div>
 
-        <!-- iframe 独立保活容器 -->
-        <IframeContainer v-show="isCurrentIframe" />
+          <!-- iframe 独立保活容器 -->
+          <IframeContainer v-show="isCurrentIframe" />
+        </el-watermark>
       </main>
     </div>
   </div>
@@ -44,6 +50,8 @@
 import { computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useTabsStore } from '@/store/modules/tabs'
+import { useAppStore } from '@/store/modules/app'
+import { useUserStore } from '@/store/modules/user'
 import Sidebar from './components/Sidebar/index.vue'
 import Navbar from './components/Navbar/index.vue'
 import Tabs from './components/Tabs/index.vue'
@@ -51,8 +59,16 @@ import IframeContainer from './components/IframeContainer/index.vue'
 
 const route = useRoute()
 const tabsStore = useTabsStore()
+const appStore = useAppStore()
+const userStore = useUserStore()
 
 const isCurrentIframe = computed(() => tabsStore.isCurrentTabIframe)
+const isDark = computed(() => appStore.isDark)
+
+const watermarkContent = computed(() => {
+  if (!appStore.watermarkEnabled) return ''
+  return `${userStore.userInfo.displayName} ${userStore.userInfo.username}`
+})
 
 // 监听当前路由变动，自动同步到 Tab 状态中
 watch(

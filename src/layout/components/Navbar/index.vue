@@ -103,7 +103,9 @@
         <template #dropdown>
           <el-dropdown-menu>
             <el-dropdown-item>个人中心</el-dropdown-item>
-            <el-dropdown-item>偏好设置</el-dropdown-item>
+            <el-dropdown-item @click="toggleWatermark">
+              <span>{{ watermarkEnabled ? '隐藏安全水印' : '显示安全水印' }}</span>
+            </el-dropdown-item>
             <el-dropdown-item
               divided
               @click="handleLogout"
@@ -194,6 +196,12 @@ const tabsStore = useTabsStore()
 const isDark = computed(() => appStore.isDark)
 const userInfo = computed(() => userStore.userInfo)
 const isCurrentIframe = computed(() => tabsStore.isCurrentTabIframe)
+const watermarkEnabled = computed(() => appStore.watermarkEnabled)
+
+const toggleWatermark = () => {
+  appStore.toggleWatermark()
+  ElMessage.info(appStore.watermarkEnabled ? '已开启全局防截屏水印' : '已停用全局水印')
+}
 
 const currentTitle = computed(() => {
   return (route.meta?.title as string) || '工作台'
@@ -212,7 +220,10 @@ const toggleBrowserFullscreen = () => {
 }
 
 const handleLogout = () => {
-  ElMessage.info('已安全退出登录演示')
+  localStorage.removeItem('access_token')
+  tabsStore.closeAllTabs()
+  ElMessage.success('已安全退出登录')
+  router.push('/login')
 }
 
 // 快速搜索逻辑

@@ -103,6 +103,15 @@ export const routes: RouteRecordRaw[] = [
     ]
   },
   {
+    path: '/login',
+    name: 'Login',
+    component: () => import('@/views/login/index.vue'),
+    meta: {
+      title: '系统登录',
+      hidden: true
+    }
+  },
+  {
     path: '/:pathMatch(.*)*',
     redirect: '/dashboard'
   }
@@ -113,8 +122,25 @@ const router = createRouter({
   routes
 })
 
-router.beforeEach((_to, _from, next) => {
+router.beforeEach((to, _from, next) => {
   NProgress.start()
+
+  const token = localStorage.getItem('access_token')
+
+  // 若无 token 且不是去登录页
+  if (!token && to.path !== '/login') {
+    // 首次进入默认赋予开发演示 token 保证直接访问顺畅，也可手动退出测试完整登录流程
+    localStorage.setItem('access_token', 'demo_access_token_zinc')
+    next()
+    return
+  }
+
+  // 已登录去登录页，重定向至首页
+  if (token && to.path === '/login') {
+    next('/dashboard')
+    return
+  }
+
   next()
 })
 

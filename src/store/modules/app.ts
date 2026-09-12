@@ -44,6 +44,12 @@ export const useAppStore = defineStore('app', () => {
     }
   }
 
+  const watermarkEnabled = ref<boolean>(true)
+
+  const toggleWatermark = () => {
+    watermarkEnabled.value = !watermarkEnabled.value
+  }
+
   // 初始化应用主题
   applyTheme(isDark.value)
 
@@ -51,9 +57,11 @@ export const useAppStore = defineStore('app', () => {
     sidebarCollapsed,
     isDark,
     isIframeFullscreen,
+    watermarkEnabled,
     toggleTheme,
     applyTheme,
     toggleSidebar,
-    toggleIframeFullscreen
+    toggleIframeFullscreen,
+    toggleWatermark
   }
 })
