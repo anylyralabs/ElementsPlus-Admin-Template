@@ -61,10 +61,10 @@ export const routes: RouteRecordRaw[] = [
         name: 'IframeVueDocs',
         component: () => import('@/views/empty/index.vue'),
         meta: {
-          title: 'Vue3 官方文档',
+          title: 'Vue3 特性速查',
           icon: 'Globe',
           isIframe: true,
-          iframeUrl: 'https://cn.vuejs.org/'
+          iframeUrl: '/vue-docs-preview.html'
         }
       },
       {

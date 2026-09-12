@@ -30,6 +30,6 @@ export default [
     }
   },
   {
-    ignores: ['dist/**', 'node_modules/**', 'public/**', '*.cjs', 'postcss.config.cjs', 'tailwind.config.cjs']
+    ignores: ['dist/**', 'node_modules/**', 'public/**', '*.cjs', '*.js', 'postcss.config.cjs', 'tailwind.config.cjs']
   }
 ]

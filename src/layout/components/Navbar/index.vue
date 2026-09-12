@@ -234,7 +234,7 @@ const allNavItems = [
   { title: '工作台概览', path: '/dashboard', isIframe: false },
   { title: '双向通信子系统', path: '/iframe/demo-interactive', isIframe: true },
   { title: '长表单状态保活', path: '/iframe/demo-form', isIframe: true },
-  { title: 'Vue3 官方文档', path: '/iframe/vue-docs', isIframe: true },
+  { title: 'Vue3 特性速查', path: '/iframe/vue-docs', isIframe: true },
   { title: 'iframe 配置中心', path: '/configurator', isIframe: false },
   { title: 'Bridge 通信文档', path: '/docs/bridge', isIframe: false },
   { title: '集成系统用户', path: '/system/users', isIframe: false }

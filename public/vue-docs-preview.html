@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vue 3 核心技术与架构速查</title>
+  <script src="/bridge-client.js"></script>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --fg: #18181b;
+      --card-bg: #fafafa;
+      --border: #e4e4e7;
+      --muted: #71717a;
+      --code-bg: #f4f4f5;
+      --btn-bg: #18181b;
+      --btn-fg: #ffffff;
+    }
+    html.dark {
+      --bg: #09090b;
+      --fg: #f4f4f5;
+      --card-bg: #18181b;
+      --border: #27272a;
+      --muted: #a1a1aa;
+      --code-bg: #121215;
+      --btn-bg: #f4f4f5;
+      --btn-fg: #18181b;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background-color: var(--bg);
+      color: var(--fg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      padding: 24px;
+      line-height: 1.5;
+      transition: background-color 0.2s, color 0.2s;
+    }
+    .header {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 16px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      font-size: 11px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-family: monospace;
+    }
+    .alert-box {
+      border: 1px solid var(--border);
+      background: var(--card-bg);
+      border-left: 3px solid #71717a;
+      border-radius: 6px;
+      padding: 12px 16px;
+      margin-bottom: 20px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+    }
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px;
+      font-family: monospace;
+      font-size: 12px;
+      overflow-x: auto;
+      margin-top: 8px;
+    }
+    button {
+      background: var(--btn-bg);
+      color: var(--btn-fg);
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <h2 style="font-size: 18px; font-weight: 700;">Vue 3 核心技术与架构速查</h2>
+      <p style="font-size: 12px; color: var(--muted); margin-top: 4px;">独立子系统嵌入演示文档</p>
+    </div>
+    <div style="display: flex; gap: 8px; align-items: center;">
+      <a href="https://cn.vuejs.org/" target="_blank" rel="noopener noreferrer" style="font-size: 12px; color: var(--muted); text-decoration: none; border: 1px solid var(--border); padding: 4px 10px; border-radius: 6px;">
+        在独立标签页打开官方站点 ↗
+      </a>
+      <span class="badge">Vue v3.5.x</span>
+    </div>
+  </div>
+
+  <div class="alert-box">
+    <strong>关于 X-Frame-Options 安全策略说明：</strong><br />
+    Vue 官方站点 (cn.vuejs.org) 服务端配置了 <code>X-Frame-Options: DENY</code>，出于同源防护机制，浏览器会拦截外域 iframe 直接嵌入。
+    本页面为模板内置的可嵌入速查文档；若需在企业内网嵌入不可控的外部站点，可通过反向代理（如 Nginx <code>proxy_hide_header X-Frame-Options</code>）解除限制。
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <div class="card-title">1. 响应式核心: ref 与 reactive</div>
+      <p style="font-size: 12px; color: var(--muted);">基于 ES2015 Proxy 实现的高效深层监听。</p>
+      <pre>import { ref, computed } from 'vue'
+
+const count = ref(0)
+const double = computed(() => count.value * 2)
+
+function inc() {
+  count.value++
+}</pre>
+    </div>
+
+    <div class="card">
+      <div class="card-title">2. 跨容器生命周期联动</div>
+      <p style="font-size: 12px; color: var(--muted);">通过 IframeBridge 实时调用宿主状态。</p>
+      <pre>import { bridgeClient } from '@/core/bridge-client'
+
+// 向宿主后台发送反馈通知
+bridgeClient.showMessage('操作成功', 'success')
+// 动态修改宿主当前 Tab 标题
+bridgeClient.setTabTitle('新标题')</pre>
+      <div style="margin-top: 10px;">
+        <button onclick="testNotify()">测试调用宿主通知</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    bridgeClient.onThemeChange((data) => {
+      if (data.isDark) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    });
+
+    function testNotify() {
+      bridgeClient.showMessage('来自 Vue 3 速查子文档的测试通知！', 'success');
+    }
+  </script>
+</body>
+</html>

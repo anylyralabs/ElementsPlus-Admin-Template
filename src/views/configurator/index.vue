@@ -141,7 +141,7 @@ const form = reactive({
 const quickTemplates = [
   { title: '本地通信演示', path: '/iframe/demo-interactive', iframeUrl: '/demo-subapp.html', icon: 'Radio' },
   { title: '企业立项长表单', path: '/iframe/demo-form', iframeUrl: '/demo-form.html', icon: 'FileText' },
-  { title: 'Vue3 官方手册', path: '/iframe/vue-docs', iframeUrl: 'https://cn.vuejs.org/', icon: 'Globe' }
+  { title: 'Vue3 特性速查', path: '/iframe/vue-docs', iframeUrl: '/vue-docs-preview.html', icon: 'Globe' }
 ]
 
 const applyTemplate = (tpl: typeof quickTemplates[0]) => {

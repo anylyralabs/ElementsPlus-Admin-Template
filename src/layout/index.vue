@@ -16,25 +16,21 @@
         <el-watermark
           :content="watermarkContent"
           :font="{ color: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)', fontSize: 13 }"
-          class="w-full h-full"
+          class="watermark-wrapper w-full h-full"
         >
           <!-- 普通 Vue 路由页面视图 -->
           <div
             v-show="!isCurrentIframe"
-            class="w-full h-full overflow-y-auto"
+            class="view-container w-full h-full overflow-y-auto"
           >
             <router-view v-slot="{ Component, route: currentRoute }">
-              <transition
-                name="fade-transform"
-                mode="out-in"
-              >
-                <keep-alive>
-                  <component
-                    :is="Component"
-                    :key="currentRoute.path"
-                  />
-                </keep-alive>
-              </transition>
+              <keep-alive>
+                <component
+                  :is="Component"
+                  v-if="!currentRoute.meta?.isIframe"
+                  :key="currentRoute.path"
+                />
+              </keep-alive>
             </router-view>
           </div>
 
@@ -62,7 +58,8 @@ const tabsStore = useTabsStore()
 const appStore = useAppStore()
 const userStore = useUserStore()
 
-const isCurrentIframe = computed(() => tabsStore.isCurrentTabIframe)
+// 直接依据当前实际路由 meta 判定，零时序差
+const isCurrentIframe = computed(() => Boolean(route.meta?.isIframe))
 const isDark = computed(() => appStore.isDark)
 
 const watermarkContent = computed(() => {
@@ -91,18 +88,18 @@ watch(
 </script>
 
 <style scoped>
-.fade-transform-leave-active,
-.fade-transform-enter-active {
-  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+.watermark-wrapper {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
-
-.fade-transform-enter-from {
-  opacity: 0;
-  transform: translateY(4px);
+:deep(.el-watermark) {
+  width: 100% !important;
+  height: 100% !important;
+  display: block !important;
 }
-
-.fade-transform-leave-to {
-  opacity: 0;
-  transform: translateY(-4px);
+.view-container {
+  height: 100%;
+  width: 100%;
 }
 </style>
